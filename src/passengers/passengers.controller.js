@@ -1,4 +1,7 @@
-import { validatePassenger } from "./passenger.schema.js";
+import {
+  validatePassenger,
+  validatePartialPassengers,
+} from "./passenger.schema.js";
 import { PassengerService } from "./passengersService.js";
 
 const passengerService = new PassengerService();
@@ -53,6 +56,16 @@ export const getOnePassenger = async (req, res) => {
 
 export const updatePassenger = async (req, res) => {
   try {
+    const { errorMessage, hasError, passengerData } = validatePartialPassengers(
+      req.body
+    );
+    if (hasError) {
+      return res.status(422).json({
+        status: `Error: ${errorMessage}`,
+        message: `Passenger with id: ${id} not found`,
+      });
+    }
+
     // Obtener el pasajero que se va a actualizar
     const { id } = req.params;
 
@@ -68,7 +81,7 @@ export const updatePassenger = async (req, res) => {
     // En caso de que exista se procede a actualizar el pasajero
     const updatePassenger = await passengerService.updatePassenger(
       passenger,
-      req.body
+      passengerData
     );
     // Retornamos el pasajero actualizado
     return res.json(updatePassenger);
